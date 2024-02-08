@@ -1,6 +1,8 @@
 package com.juani.expensetrackerapi.config;
 
+import com.juani.expensetrackerapi.enums.ERole;
 import com.juani.expensetrackerapi.security.filters.JwtAuthenticationFilter;
+import com.juani.expensetrackerapi.security.filters.JwtAuthorizationFilter;
 import com.juani.expensetrackerapi.security.jwt.JwtUtils;
 import com.juani.expensetrackerapi.service.implementation.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +15,8 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.authentication.configuration.EnableGlobalAuthentication;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -25,12 +29,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFilter;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
-@EnableWebSecurity
 @RequiredArgsConstructor
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     @Autowired
@@ -38,6 +43,9 @@ public class SecurityConfig {
 
     @Autowired
     JwtUtils jwtUtils;
+
+    @Autowired
+    JwtAuthorizationFilter authorizationFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
@@ -55,6 +63,7 @@ public class SecurityConfig {
                                )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilter(jwtAuthenticationFilter)
+                .addFilterBefore(authorizationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
